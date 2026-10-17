@@ -1,0 +1,28 @@
+name: Fetch LOS24 from GDrive
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download LOS24 (Android 17)
+        run: |
+          pip install -q gdown
+          gdown --fuzzy "https://drive.google.com/file/d/1rvitxPbxlfXTDq-q1iwGbS0olZ-KeYTe/view" -O LineageOS24-rolex.zip
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: LineageOS24-rolex.zip
+          tag_name: los24
+          name: LineageOS 24 (Android 17) - Redmi 4A
+          body: |
+            Unofficial LineageOS 24 (Android 17) for Xiaomi Redmi 4A (rolex)
+            Kernel: 4.19.325-cip135-st19-Mi8937v2 | Security patch: 2026-08-01
+            Known bug: SIM not set as default data has no cellular
