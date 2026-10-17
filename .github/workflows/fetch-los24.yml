@@ -14,8 +14,8 @@ jobs:
           python-version: '3.12'
       - name: Download LOS24 (Android 17)
         run: |
-          pip install -q gdown
-          gdown --fuzzy "https://drive.google.com/file/d/1rvitxPbxlfXTDq-q1iwGbS0olZ-KeYTe/view" -O LineageOS24-rolex.zip
+          pip install -q -U gdown
+          gdown 1rvitxPbxlfXTDq-q1iwGbS0olZ-KeYTe -O LineageOS24-rolex.zip
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
