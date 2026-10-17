@@ -1,0 +1,27 @@
+name: Fetch ColorOS 16.0.8 from GDrive
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download ColorOS 16.0.8
+        run: |
+          pip install -q -U gdown
+          gdown 1ADSKTl3cQvXMyzVPeXvy55_ZLgU4xQIZ -O ColorOS16.0.8-rolex.zip
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ColorOS16.0.8-rolex.zip
+          tag_name: coloros16
+          name: ColorOS 16.0.8 (Android 16) - Redmi 4A
+          body: |
+            ColorOS 16.0.8 (Android 16) port for Xiaomi Redmi 4A (rolex)
+            Source: 4PDA Redmi 4A thread, post by masana13
