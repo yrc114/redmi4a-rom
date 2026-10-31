@@ -1,0 +1,42 @@
+name: Fetch HyperOS 3.0.315.0 from GDrive
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download HyperOS 3.0.315.0
+        run: |
+          pip install -q -U gdown
+          gdown 1Bk-UuK8FCRMh-PhPWIbiy6tjilF_A5Rx -O HyperOS3-rolex.zip
+          ls -la HyperOS3-rolex.zip
+      - name: Split large zip into parts
+        run: |
+          SIZE=$(stat -c%s HyperOS3-rolex.zip)
+          echo "zip size: $SIZE"
+          if [ "$SIZE" -gt 1900000000 ]; then
+            split -b 1900M -d -a 2 HyperOS3-rolex.zip HyperOS3-rolex.zip.
+            rm HyperOS3-rolex.zip
+            ls -la
+          fi
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HyperOS3-rolex.zip*
+          tag_name: hyperos3
+          allow_unchanged_tag: true
+          name: HyperOS 3.0.315.0 (Android 16, stable) - Redmi 4A
+          body: |
+            HyperOS 3.0.315.0 (Android 16) stable port for Xiaomi Redmi 4A (rolex).
+            Source: alpha's trashdump (alphas-trashdump.github.io).
+            NOTE: maintainer marks this ROM as "Not recommended for 2/16, Mi8917".
+            Bug: fingerprint not working. Do NOT change kernel (bootloop).
+            If the zip was split into .00/.01 files, download ALL parts and merge on Windows:
+            copy /b HyperOS3-rolex.zip.00+HyperOS3-rolex.zip.01 HyperOS3-rolex.zip
