@@ -1,0 +1,41 @@
+name: Fetch HyperOS 4.0.0.16 Beta from GDrive
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download HyperOS 4.0.0.16 Beta
+        run: |
+          pip install -q -U gdown
+          gdown 1_Tu-HcN1PIz4PItm5vvCuh5FrjJpfDTX -O HyperOS4-rolex.zip
+          ls -la HyperOS4-rolex.zip
+      - name: Split large zip into parts
+        run: |
+          SIZE=$(stat -c%s HyperOS4-rolex.zip)
+          echo "zip size: $SIZE"
+          if [ "$SIZE" -gt 1900000000 ]; then
+            split -b 1900M -d -a 2 HyperOS4-rolex.zip HyperOS4-rolex.zip.
+            rm HyperOS4-rolex.zip
+            ls -la
+          fi
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HyperOS4-rolex.zip*
+          tag_name: hyperos4
+          allow_unchanged_tag: true
+          name: HyperOS 4.0.0.16 Beta (Android 17) - Mi8937
+          body: |
+            HyperOS 4.0.0.16 Beta (Android 17) port, Mi8937 family (santoni/ugg/land).
+            Source: alpha's trashdump (alphas-trashdump.github.io).
+            Experimental ROM - NOT for daily usage.
+            If split into .00/.01 files, download all parts and merge on Windows:
+            copy /b HyperOS4-rolex.zip.00+HyperOS4-rolex.zip.01 HyperOS4-rolex.zip
