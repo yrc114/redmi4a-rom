@@ -1,0 +1,36 @@
+name: Fetch pixeldrain i16hXMfb
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get file info
+        run: |
+          curl -sS -L "https://pixeldrain.com/api/file/i16hXMfb/info" -o info.json || echo "info failed"
+          cat info.json || true
+      - name: Download and split if needed
+        run: |
+          curl -sS -L "https://pixeldrain.com/api/file/i16hXMfb" -o Pixel-i16hXMfb.zip
+          ls -la Pixel-i16hXMfb.zip
+          SIZE=$(stat -c%s Pixel-i16hXMfb.zip)
+          echo "size=$SIZE"
+          if [ "$SIZE" -gt 1900000000 ]; then
+            split -b 1900M -d -a 2 Pixel-i16hXMfb.zip Pixel-i16hXMfb.zip.
+            rm Pixel-i16hXMfb.zip
+          fi
+          ls -la
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Pixel-i16hXMfb.zip*
+          tag_name: pixel-i16hxmfb
+          allow_unchanged_tag: true
+          name: pixeldrain i16hXMfb
+          body: |
+            Mirrored from pixeldrain.com/u/i16hXMfb via GitHub Actions.
+            If split into .00/.01 parts, merge on Windows:
+            copy /b Pixel-i16hXMfb.zip.00+Pixel-i16hXMfb.zip.01 Pixel-i16hXMfb.zip
