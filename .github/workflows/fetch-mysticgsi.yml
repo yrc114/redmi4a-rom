@@ -1,0 +1,39 @@
+name: Fetch MysticGSI Magicos 15 from SourceForge
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download MysticGSI MagicOS 15
+        run: |
+          curl -L --fail --retry 3 --retry-delay 5 \
+            "https://master.dl.sourceforge.net/project/mystic-gsi-updates/Honor/Magicos-ELP-AN00-15-eng.root.00000000.000000-AB-20250210-MysticGSI.zip?viasf=1" \
+            -o Magicos15-MysticGSI.zip -w "HTTP %{http_code} size=%{size_download}\n"
+          ls -la Magicos15-MysticGSI.zip
+      - name: Split if needed
+        run: |
+          SIZE=$(stat -c%s Magicos15-MysticGSI.zip)
+          echo "size=$SIZE"
+          if [ "$SIZE" -gt 1900000000 ]; then
+            split -b 1900M -d -a 2 Magicos15-MysticGSI.zip Magicos15-MysticGSI.zip.
+            rm Magicos15-MysticGSI.zip
+          fi
+          ls -la
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Magicos15-MysticGSI.zip*
+          tag_name: mysticgsi-magicos15
+          allow_unchanged_tag: true
+          name: MagicOS 15 (A15) MysticGSI - AB arm64
+          body: |
+            MagicOS 15 (Android 15) GSI port from Honor ELP-AN00, MysticGSI project.
+            AB partition, arm64. Build 2025-02-10. Size 4.62 GB.
+            Source: sourceforge mystic-gsi-updates.
+            Generic Treble AB GSI - NOT for non-Treble / A-only devices like Redmi 4A.
+            Merge parts on Windows:
+            copy /b Magicos15-MysticGSI.zip.00+Magicos15-MysticGSI.zip.01+Magicos15-MysticGSI.zip.02 Magicos15-MysticGSI.zip
