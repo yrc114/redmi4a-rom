@@ -1,0 +1,39 @@
+name: Fetch HarmonyOS 4.0 GSI from SourceForge
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download HarmonyOS GSI
+        run: |
+          curl -L --fail --retry 3 --retry-delay 5 \
+            "https://sourceforge.net/projects/nippongsi/files/Generic%20-%20HarmonyOS-4.0%20-%200Q4YNFEFWL/HarmonyOS-4.0-AB-12-20230827-NipponGSI.img.gz/download" \
+            -o HarmonyOS4-GSI.img.gz -w "HTTP %{http_code} size=%{size_download}\n"
+          ls -la HarmonyOS4-GSI.img.gz
+      - name: Split if needed
+        run: |
+          SIZE=$(stat -c%s HarmonyOS4-GSI.img.gz)
+          echo "size=$SIZE"
+          if [ "$SIZE" -gt 1900000000 ]; then
+            split -b 1900M -d -a 2 HarmonyOS4-GSI.img.gz HarmonyOS4-GSI.img.gz.part
+            rm HarmonyOS4-GSI.img.gz
+          fi
+          ls -la
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HarmonyOS4-GSI.img.gz*
+          tag_name: harmonyos4-gsi
+          allow_unchanged_tag: true
+          name: HarmonyOS 4.0 GSI (A12, arm64 AB) - NipponGSI
+          body: |
+            HarmonyOS 4.0 GSI, ported from Huawei Nova 11 (codename ohosqssi).
+            Android 12 base, arm64 AB, image 3.61 GiB, security patch 2023-08-01.
+            Source: t.me/nippongsi/8055 -> sourceforge nippongsi project.
+            Generic Treble GSI - NOT for non-Treble devices (Redmi 4A has no Treble support).
+            If split into parts, merge on Windows:
+            copy /b HarmonyOS4-GSI.img.gz.part00+HarmonyOS4-GSI.img.gz.part01+... HarmonyOS4-GSI.img.gz
