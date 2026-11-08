@@ -1,0 +1,38 @@
+name: Fetch Telegram post nippongsi 8055
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch t.me post
+        run: |
+          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36" \
+            "https://t.me/nippongsi/8055?embed=1&mode=tme" -o post_embed.html -w "embed HTTP %{http_code} size=%{size_download}\n"
+          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36" \
+            "https://t.me/nippongsi/8055" -o post.html -w "page HTTP %{http_code} size=%{size_download}\n"
+          echo "===== EMBED TEXT ====="
+          python3 - <<'EOF'
+          import re, html, os
+          for f in ['post_embed.html','post.html']:
+              if not os.path.exists(f): continue
+              t = open(f, encoding='utf-8', errors='ignore').read()
+              print(f"--- {f} ({len(t)} chars) ---")
+              m = re.search(r'<meta property="og:title" content="([^"]*)"', t)
+              print("TITLE:", html.unescape(m.group(1)) if m else None)
+              m = re.search(r'<meta property="og:description" content="([^"]*)"', t)
+              print("DESC:", html.unescape(m.group(1)) if m else None)
+              # message text block
+              m = re.search(r'class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>', t, re.S)
+              if m:
+                  txt = re.sub(r'<[^>]+>', ' ', m.group(1))
+                  txt = html.unescape(re.sub(r'[ \t]+', ' ', txt))
+                  print("TEXT:", txt[:1200])
+              links = re.findall(r'href="(https?://[^"]+)"', t)
+              print("LINKS:")
+              for u in links[:30]:
+                  if 't.me' in u and 'nippongsi' not in u: continue
+                  print("  ", u)
+          EOF
